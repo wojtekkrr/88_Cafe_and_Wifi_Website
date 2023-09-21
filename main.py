@@ -22,6 +22,7 @@ db = SQLAlchemy()
 db.init_app(app)
 
 
+
 ##CREATE TABLE
 class Cafe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -73,23 +74,22 @@ def home():
     return render_template("index.html", all_cafes=cafes)
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         contact_data = request.form
-        print(contact_data["demo-name"])
         # contact_data["email"], contact_data["message"])
-        return redirect(url_for('home'))
+    return render_template("login.html")
 
 
-@app.route("/register", methods=["POST"])
+@app.route("/register", methods=["GET", "POST"])
 def register():
     return render_template("register.html")
 
 # Add a POST method to be able to post comments
-@app.route("/post/<int:post_id>", methods=["GET", "POST"])
-def show_post(post_id):
-    # requested_post = db.get_or_404(BlogPost, post_id)
+@app.route("/cafe/<int:cafe_id>", methods=["GET", "POST"])
+def show_cafe(cafe_id):
+    requested_cafe = db.get_or_404(Cafe, cafe_id)
     # # Add the CommentForm to the route
     # comment_form = CommentForm()
     # # Only allow logged-in users to comment on posts
@@ -105,8 +105,8 @@ def show_post(post_id):
     #     )
     #     db.session.add(new_comment)
     #     db.session.commit()
-    # return render_template("post.html", post=requested_post, current_user=current_user, form=comment_form)
-    return redirect(url_for('home'))
+    return render_template("cafe.html", cafe=requested_cafe)#, current_user=current_user, form=comment_form)
+
 
 
 if __name__ == "__main__":
