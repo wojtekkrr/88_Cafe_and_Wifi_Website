@@ -3,9 +3,10 @@ from flask_login import UserMixin, login_user, LoginManager, current_user, logou
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = os.environ.get('Flask_Key')
 
 # Configure Flask-Login
 login_manager = LoginManager()
