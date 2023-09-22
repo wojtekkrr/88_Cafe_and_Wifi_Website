@@ -59,14 +59,26 @@
 											<h2><a href="{{ url_for('show_cafe', cafe_id=cafe.id) }}">{{ cafe.name }}</a></h2>
 										</header>
 										<a href="{{ url_for('show_cafe', cafe_id=cafe.id) }}" class="image fit"><img src="{{ cafe.img_url }}" alt="" /></a>
-										<p>Donec eget ex magna. Interdum et malesuada fames ac ante ipsum primis in faucibus. Pellentesque venenatis dolor imperdiet dolor mattis sagittis magna etiam.</p>
+										<a href="{{ cafe.map_url }}">Map</a>
+										<h3>{{ cafe.location }}</h3>
 										<ul class="actions special">
-											<li><a href="#" class="button">Full Story</a></li>
+											<li><a href="{{ url_for('show_cafe', cafe_id=cafe.id) }}" class="button">More about café</a></li>
 										</ul>
+										{% if current_user.id == 1: %}
+          									<a href="{{url_for('delete_post', cafe_id=cafe.id) }}">✘</a>
+          								{% endif %}
 									</article>
 								{% endfor %}
 							</section>
-
+							{% if current_user.is_authenticated: %}
+								<section class="posts">
+									<div class="col-6 col-12-small">
+										<ul class="actions stacked">
+											<li><a href="{{url_for('add_new_post')}}" class="button primary fit">Add cafe</a></li>
+										</ul>
+									</div>
+								</section>
+							{% endif %}
 					</div>
 
 				<!-- Copyright -->
