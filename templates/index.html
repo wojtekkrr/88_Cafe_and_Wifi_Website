@@ -35,8 +35,13 @@
 					<nav id="nav">
 						<ul class="links">
 							<li class="active"><a href="{{ url_for('home') }}">Home</a></li>
-							<li><a href="{{ url_for('login') }}">Login</a></li>
-							<li><a href="{{ url_for('register') }}">Register</a></li>
+<!--							Wyświetlenie określonych parametrów, tylko dla zalogowanych użytkowników-->
+							{% if not current_user.is_authenticated: %}
+								<li><a href="{{ url_for('login') }}">Login</a></li>
+								<li><a href="{{ url_for('register') }}">Register</a></li>
+							{% else: %}
+								<li><a href="{{ url_for('logout') }}">Logout</a></li>
+							{% endif %}
 						</ul>
 					</nav>
 
@@ -48,7 +53,7 @@
 								<header class="major">
 									<h2>The best cafes in neighbourhood</h2>
 								</header>
-								<a href="#" class="image main"><img src="static/images/pic01.jpg" alt="" /></a>
+								<img src="static/images/pic01.jpg" class="image main" />
 							</article>
 
 						<!-- Posts -->
@@ -70,6 +75,7 @@
 									</article>
 								{% endfor %}
 							</section>
+<!--						Tylko dla zalogowanych użytkowników-->
 							{% if current_user.is_authenticated: %}
 								<section class="posts">
 									<div class="col-6 col-12-small">

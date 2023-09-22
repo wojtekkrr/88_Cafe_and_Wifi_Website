@@ -25,8 +25,13 @@
 					<nav id="nav">
 						<ul class="links">
 							<li><a href="{{ url_for('home') }}">Home</a></li>
-							<li><a href="{{ url_for('login') }}">Login</a></li>
-							<li><a href="{{ url_for('register') }}">Register</a></li>
+<!--							Wyświetlenie określonych parametrów, tylko dla zalogowanych użytkowników-->
+							{% if not current_user.is_authenticated: %}
+								<li><a href="{{ url_for('login') }}">Login</a></li>
+								<li><a href="{{ url_for('register') }}">Register</a></li>
+							{% else: %}
+								<li><a href="{{ url_for('logout') }}">Logout</a></li>
+							{% endif %}
 						</ul>
 					</nav>
 
@@ -41,6 +46,7 @@
 								</header>
 						<!-- Cafe Photo -->
 								<p><span class="image right"><img src="{{ cafe.img_url }}" alt=""></span>
+<!--								Wyświetlenie danych o kawiarni-->
 									<ul>
 										<li>Location: {{ cafe.location }}</li>
 										<li>Soccets: {% if cafe.has_sockets %}🔌{% else %}✘{% endif %}</li>

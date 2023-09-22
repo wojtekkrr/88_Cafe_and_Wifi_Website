@@ -26,8 +26,13 @@
 					<nav id="nav">
 						<ul class="links">
 							<li><a href="{{ url_for('home') }}">Home</a></li>
-							<li><a href="{{ url_for('login') }}">Login</a></li>
-							<li><a href="{{ url_for('register') }}">Register</a></li>
+<!--							Wyświetlenie określonych parametrów, tylko dla zalogowanych użytkowników-->
+							{% if not current_user.is_authenticated: %}
+								<li><a href="{{ url_for('login') }}">Login</a></li>
+								<li><a href="{{ url_for('register') }}">Register</a></li>
+							{% else: %}
+								<li><a href="{{ url_for('logout') }}">Logout</a></li>
+							{% endif %}
 						</ul>
 					</nav>
 
@@ -41,6 +46,7 @@
 									<h1>New Cafe</h1>
 									<p>Add new cafe</p>
 								</header>
+<!--	Formularz odbierający dane o nowej kawiarni							-->
 								<!-- Form -->
 									<form method="post" action="{{ url_for('add_new_post') }}">
 										<div class="row gtr-uniform">
@@ -81,7 +87,7 @@
 											<!-- Break -->
 											<div class="col-12">
 												<ul class="actions">
-													<li><input type="submit" value="Login" class="primary" /></li>
+													<li><input type="submit" value="Add Cafe" class="primary" /></li>
 													<li><input type="reset" value="Reset" /></li>
 												</ul>
 											</div>

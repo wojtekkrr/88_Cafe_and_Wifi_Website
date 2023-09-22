@@ -3,10 +3,9 @@ from flask_login import UserMixin, login_user, LoginManager, current_user, logou
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('Flask_Key')
+app.config['SECRET_KEY'] = 'Flask_Key'
 
 # Configure Flask-Login
 login_manager = LoginManager()
@@ -24,7 +23,6 @@ db = SQLAlchemy()
 db.init_app(app)
 
 
-
 ##CREATE TABLE
 class Cafe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,9 +36,6 @@ class Cafe(db.Model):
     has_sockets = db.Column(db.Boolean, nullable=False)
     can_take_calls = db.Column(db.Boolean, nullable=False)
     coffee_price = db.Column(db.String(250), nullable=True)
-
-    def to_dict(self):
-        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
 
 # User table for all your registered users
@@ -60,13 +55,41 @@ def admin_only(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # If id is not 1 then return abort with 403 error
-        if current_user.id != 1:
+        try:
+            if current_user.id != 1:
+                return abort(403)
+        except AttributeError:
             return abort(403)
         # Otherwise continue with the route function
         return f(*args, **kwargs)
 
     return decorated_function
 
+
+# Create an registered-user-only decorator
+def registered_user_only(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # If user is authenticated then return abort with 403 error
+        if not current_user.is_authenticated:
+            return abort(403)
+        # Otherwise continue with the route function
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+# Create an unregistered-user-only decorator
+def unregistered_user_only(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # If user is not authenticated then return abort with 403 error
+        if current_user.is_authenticated:
+            return abort(403)
+        # Otherwise continue with the route function
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 
 @app.route('/')
@@ -77,11 +100,11 @@ def home():
 
 
 @app.route("/login", methods=["GET", "POST"])
+@unregistered_user_only
 def login():
     if request.method == "POST":
         login_data = request.form
         result = db.session.execute(db.select(User).where(User.email == login_data["email"]))
-        # Note, email in db is unique so will only have one result.
         user = result.scalar()
         # Email doesn't exist
         if not user:
@@ -98,12 +121,14 @@ def login():
 
 
 @app.route('/logout')
+@registered_user_only
 def logout():
     logout_user()
     return redirect(url_for('home'))
 
 
 @app.route("/register", methods=["GET", "POST"])
+@unregistered_user_only
 def register():
     if request.method == "POST":
         data = request.form
@@ -115,6 +140,7 @@ def register():
             flash("You've already signed up with that email, log in instead!")
             return redirect(url_for('login'))
 
+        #Securing the password
         hash_and_salted_password = generate_password_hash(
             data["password"],
             method='pbkdf2:sha256',
@@ -127,28 +153,15 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
+        login_user(new_user)
         return redirect(url_for("home"))
     return render_template("register.html", current_user=current_user)
 
-# Add a POST method to be able to post comments
-@app.route("/cafe/<int:cafe_id>", methods=["GET", "POST"])
+
+
+@app.route("/cafe/<int:cafe_id>")
 def show_cafe(cafe_id):
     requested_cafe = db.get_or_404(Cafe, cafe_id)
-    # # Add the CommentForm to the route
-    # comment_form = CommentForm()
-    # # Only allow logged-in users to comment on posts
-    # if comment_form.validate_on_submit():
-    #     if not current_user.is_authenticated:
-    #         flash("You need to login or register to comment.")
-    #         return redirect(url_for("login"))
-    #
-    #     new_comment = Comment(
-    #         text=comment_form.comment_text.data,
-    #         comment_author=current_user,
-    #         parent_post=requested_post
-    #     )
-    #     db.session.add(new_comment)
-    #     db.session.commit()
     return render_template("cafe.html", cafe=requested_cafe, current_user=current_user)
 
 
@@ -162,31 +175,35 @@ def delete_post(cafe_id):
     return redirect(url_for('home'))
 
 
-# Use a decorator so only an admin user can create new posts
+# Use a decorator so only an registered user can create new posts
 @app.route("/new-post", methods=["GET", "POST"])
-@admin_only
+@registered_user_only
 def add_new_post():
     if request.method == "POST":
         post_data = request.form
-
-        if post_data["has_toilet"] == "on":
-            toilets = True
-        else:
+        #Obsługa specyficznego formularza
+        try:
+            if post_data["has_toilet"] == "on":
+                toilets = True
+        except KeyError:
             toilets = False
 
-        if post_data["has_wifi"] == "on":
-            wifi = True
-        else:
+        try:
+            if post_data["has_wifi"] == "on":
+                wifi = True
+        except KeyError:
             wifi = False
 
-        if post_data["has_sockets"] == "on":
-            sockets = True
-        else:
+        try:
+            if post_data["has_sockets"] == "on":
+                sockets = True
+        except KeyError:
             sockets = False
 
-        if post_data["can_take_calls"] == "on":
-            calls = True
-        else:
+        try:
+            if post_data["can_take_calls"] == "on":
+                calls = True
+        except KeyError:
             calls = False
 
         new_post = Cafe(

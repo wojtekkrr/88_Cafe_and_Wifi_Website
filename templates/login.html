@@ -41,6 +41,14 @@
 									<h1>Login</h1>
 									<p>Welcome back!</p>
 								</header>
+								<!-- Adding Flash message here for users trying to register twice -->
+								  {% with messages = get_flashed_messages() %}
+								  {% if messages %}
+								  {% for message in messages %}
+								  <p class="flash">{{ message }}</p>
+								  {% endfor %}
+								  {% endif %}
+								  {% endwith %}
 								<!-- Form -->
 									<form method="post" action="{{ url_for('login') }}">
 										<div class="row gtr-uniform">
